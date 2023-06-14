@@ -25,7 +25,9 @@ if CLIENT then
                     local particleObj = createParticle(...)
 
                     if particleObj then
-                        particleObjectVault[particleObj] = funcDestroyParticle
+                        if not particleObj.IsValid or particleObj:IsValid() then
+                            particleObjectVault[particleObj] = funcDestroyParticle
+                        end
                     end
 
                     return particleObj
@@ -39,26 +41,19 @@ if CLIENT then
 
     local function CleanupParticles(cleanupType)
         if cleanupType and cleanupType ~= 'particles' then return end
-
-        for particleObj, destroy in pairs(particleObjectVault) do
-            local particleIsValid = particleObj.IsValid
-            local isValid = true
-
-            if particleIsValid then
-                if not particleIsValid(particleObj) then
-                    isValid = false
-                end
-            end
-            
-            if isValid then
-                destroy(particleObj, 0)
-            end
-        end
-
+        
         for k, ent in ipairs(ents_GetAll()) do
             if isentity(ent) then
                 StopAndDestroyParticles(ent)
             end
+        end
+
+        for particleObj, destroy in pairs(particleObjectVault) do
+            if not particleObj.IsValid or particleObj:IsValid() then
+                destroy(particleObj, 0)
+            end
+
+            particleObjectVault[particleObj] = nil
         end
     end
 
