@@ -33,11 +33,8 @@ if CLIENT then
             end
         end
 
-        local CNewParticleEffect = _R.CNewParticleEffect
-        local StopEmissionAndDestroyImmediately = CNewParticleEffect.StopEmissionAndDestroyImmediately
-
         StealParticleObject(_R.CLuaEmitter, 'Add', _R.CLuaParticle.SetDieTime)
-        StealParticleObject(CNewParticleEffect, 'CreateParticleSystemNoEntity', StopEmissionAndDestroyImmediately)
+        StealParticleObject(_G, 'CreateParticleSystemNoEntity', _R.CNewParticleEffect.StopEmissionAndDestroyImmediately)
     end
 
     local function CleanupParticles(cleanupType)
@@ -76,7 +73,7 @@ local Entity = Entity
 local World
 
 -- If there wasn't any parent provided, force it to be the World entity instead.
--- This is so I can remove these particles with Entity:StopParticles() or Entity:StopParticleEmission()
+-- This is so I can remove these particles with Entity:StopAndDestroyParticles()
 function _G.ParticleEffect(particleName, position, angles, parent, ...)
     if not isentity(parent) then
         if not World then
