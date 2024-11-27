@@ -36,11 +36,33 @@ if CLIENT then
     local ipairs = ipairs
     local pairs = pairs
 
+    local function isValid(ent)
+        return ent:GetTable() ~= nil -- GetTable returns no value if the entity is NULL
+    end
+
+    local function isValidForCleanUp(ent)
+        if not isentity(ent) then
+            return false
+        end
+
+        local shouldCleanUp = isValid(ent) and not ent:CreatedByMap()
+
+        if shouldCleanUp then
+            local parent = ent:GetParent()
+
+            if isValid(parent) then
+                return isValidForCleanUp(parent)
+            end
+
+            return true
+        end
+    end
+
     local function CleanupParticles(cleanupType)
         if cleanupType and cleanupType ~= 'particles' then return end
         
         for k, ent in ipairs(ents.GetAll()) do
-            if isentity(ent) and ent ~= NULL then
+            if isValidForCleanUp(ent) then
                 ent:StopAndDestroyParticles()
 
                 if ent:GetClass() == 'class CLuaEffect' then
