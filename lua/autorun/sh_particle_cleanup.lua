@@ -40,12 +40,22 @@ if CLIENT then
         return ent:GetTable() ~= nil -- GetTable returns no value if the entity is NULL
     end
 
+    local function isCreatedByMap(ent)
+        if ent:GetClass() == 'class CLuaEffect' then
+            -- Entity:CreatedByMap() returns true for Lua effects, what the fudge?
+
+            return false
+        end
+
+        return ent:CreatedByMap()
+    end
+
     local function isValidForCleanUp(ent)
         if not isentity(ent) then
             return false
         end
 
-        local shouldCleanUp = isValid(ent) and not ent:CreatedByMap()
+        local shouldCleanUp = isValid(ent) and not isCreatedByMap(ent)
 
         if shouldCleanUp then
             local parent = ent:GetParent()
