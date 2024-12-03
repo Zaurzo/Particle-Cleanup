@@ -1,4 +1,8 @@
-local particleObjectVault = {}
+local particleObjectCache = {}
+
+local doNotCleanUp = {
+    ['_firesmoke'] = 'env_fire'
+}
 
 local ents = ents
 local isentity = isentity
@@ -24,10 +28,6 @@ local function isCreatedByMap(ent)
     return ent:CreatedByMap()
 end
 
-local doNotCleanUp = {
-    ['_firesmoke'] = 'env_fire'
-}
-
 local function isValidForCleanUp(ent)
     if not isentity(ent) then
         return false
@@ -41,7 +41,7 @@ local function isValidForCleanUp(ent)
         if blacklistedParent then
             local parent = ent:GetParent()
 
-            if parent:IsValid() and blacklistedParent == parent:GetClass() then
+            if parent:IsValid() and parent:CreatedByMap() and blacklistedParent == parent:GetClass() then
                 return false
             end
         end
@@ -63,14 +63,14 @@ local function CleanupParticles(cleanupType)
         end
     end
 
-    for particleObj, funcDestroyParticleName in pairs(particleObjectVault) do
+    for particleObj, funcDestroyParticleName in pairs(particleObjectCache) do
         local destroy = particleObj[funcDestroyParticleName]
 
         if destroy then
             destroy(particleObj, 0)
         end
 
-        particleObjectVault[particleObj] = nil
+        particleObjectCache[particleObj] = nil
     end
 end
 
@@ -80,7 +80,7 @@ hook.Add('OnCleanup', 'particle_cleanup', CleanupParticles)
 hook.Add('PreCleanupMap', 'particle_cleanup', CleanupParticles)
 
 -- StealParticleObject
--- Detour a particle creation function and save it's returned object to particleObjectVault
+-- Detour a particle creation function and save it's returned object to particleObjectCache
 local function StealParticleObject(meta, funcName, funcDestroyParticleName)
     local createParticle = meta[funcName]
 
@@ -90,7 +90,7 @@ local function StealParticleObject(meta, funcName, funcDestroyParticleName)
 
             if particleObj then
                 if not particleObj.IsValid or particleObj:IsValid() then
-                    particleObjectVault[particleObj] = funcDestroyParticleName
+                    particleObjectCache[particleObj] = funcDestroyParticleName
                 end
             end
 
